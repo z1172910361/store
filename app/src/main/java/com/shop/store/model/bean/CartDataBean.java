@@ -145,6 +145,8 @@ public class CartDataBean {
             private int checked;
             private String list_pic_url;
 
+            public boolean isSelect;
+
             public int getId() {
                 return id;
             }

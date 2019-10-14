@@ -45,11 +45,8 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull final CartHolder cartHolder, final int i) {
-        if (CartFragment.cbIsChecked) {
-            cartHolder.cb.setChecked(true);
-        } else {
-            cartHolder.cb.setChecked(false);
-        }
+
+        CartDataBean.DataBean.CartListBean bean = list.get(i);
 
         number = list.get(i).getNumber();
         Glide.with(context).load(list.get(i).getList_pic_url()).into(cartHolder.shopIv);
@@ -57,7 +54,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartHolder> {
         cartHolder.countTv.setText("×" + number);
         cartHolder.itemCount.setText(number + "");
         cartHolder.priceTv.setText("￥" + list.get(i).getRetail_price());
-
+        cartHolder.cb.setChecked(list.get(i).isSelect);
         if (CartFragment.COUNT_VISIABLE) {
             cartHolder.itemCount.setTag(i);
             cartHolder.itemCount.setText(number + "");
@@ -102,6 +99,21 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartHolder> {
             cartHolder.priceTv.setVisibility(View.VISIBLE);
         }
 
+        cartHolder.cb.setTag(bean);
+        cartHolder.cb.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                boolean checked = cartHolder.cb.isChecked();
+
+                CartDataBean.DataBean.CartListBean tag = (CartDataBean.DataBean.CartListBean) v.getTag();
+
+                tag.isSelect = checked;
+                if (cartAdapterPriceReturn != null) {
+                    cartAdapterPriceReturn.selectClick();
+                }
+            }
+        });
+
         cartHolder.cb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -130,8 +142,8 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartHolder> {
         return list.size();
     }
 
-    public static class CartHolder extends RecyclerView.ViewHolder {
-        static CheckBox cb;
+    public class CartHolder extends RecyclerView.ViewHolder {
+        CheckBox cb;
         ImageView shopIv;
         TextView titleTv;
         TextView priceTv;
@@ -157,6 +169,8 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartHolder> {
 
     public interface CartAdapterPriceReturn {
         void onCartAdapterPriceReturn(boolean check, int price);
+
+        void selectClick();
     }
 
     private CartAdapterPriceReturn cartAdapterPriceReturn;

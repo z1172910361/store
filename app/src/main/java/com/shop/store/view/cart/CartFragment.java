@@ -43,10 +43,9 @@ public class CartFragment extends BaseFragment implements CartContract.View, Car
     private List<CartDataBean.DataBean.CartListBean> list;
     private CartAdapter cartAdapter;
 
-    public static boolean cbIsChecked = false;
     public static boolean COUNT_VISIABLE = false;
-    private int priceSum = 0;
-    private int countSum = 0;
+    private int priceSum;
+    private int countSum;
 
     @Override
     public void showErrMsg(String err) {
@@ -65,7 +64,7 @@ public class CartFragment extends BaseFragment implements CartContract.View, Car
         list = new ArrayList<>();
         cartAdapter = new CartAdapter(list, getActivity());
         cartRv.setAdapter(cartAdapter);
-
+        cartAdapter.setCartAdapterPriceReturn(this);
     }
 
     @Override
@@ -84,7 +83,7 @@ public class CartFragment extends BaseFragment implements CartContract.View, Car
         List<CartDataBean.DataBean.CartListBean> cartList = cartDataBean.getData().getCartList();
         list.addAll(cartList);
         cartAdapter.notifyDataSetChanged();
-        cartAdapter.setCartAdapterPriceReturn(this);
+
     }
 
     @Override
@@ -96,27 +95,10 @@ public class CartFragment extends BaseFragment implements CartContract.View, Car
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.check_all_cb:
-                if (checkAllCb.isChecked()) {
-                    priceSum = 0;
-                    countSum = 0;
-                    cbIsChecked = true;
-                    if (list != null && !list.isEmpty()) {
-                        for (int i = 0; i < list.size(); i++) {
-                            list.get(i).setChecked(1);
-                            int number = list.get(i).getNumber();
-                            int retail_price = list.get(i).getRetail_price();
-                            priceSum += number * retail_price;
-                            countSum += number;
-                        }
-                    }
-                } else {
-                    cbIsChecked = false;
-                    priceSum = 0;
-                    countSum = 0;
-                }
+                boolean checked = checkAllCb.isChecked();
+                resetSelect(checked);
                 cartAdapter.notifyDataSetChanged();
-                checkAllCb.setText("全选(" + countSum + ")");
-                totalPriceTv.setText("￥" + priceSum);
+                updateAllNum();
                 break;
             case R.id.edit_tv:
                 String edit = editTv.getText().toString();
@@ -137,7 +119,7 @@ public class CartFragment extends BaseFragment implements CartContract.View, Car
                 if (order.equals("删除")) {
                     HashSet<Integer> positions = CartAdapter.positions;
                     if (positions != null && !positions.isEmpty()) {
-                        for (Integer position:positions) {
+                        for (Integer position : positions) {
                             ((CartPresenter) persenter).getCartDelete(Constant.UID, list.get(position).getProduct_id());
                         }
                         Toast.makeText(context, "删除完成", Toast.LENGTH_SHORT).show();
@@ -149,18 +131,47 @@ public class CartFragment extends BaseFragment implements CartContract.View, Car
         }
     }
 
+    private void resetSelect(boolean checked) {
+        for (CartDataBean.DataBean.CartListBean item : list) {
+            item.isSelect = checked;
+        }
+    }
+
     @Override
     public void onCartAdapterPriceReturn(boolean check, int price) {
+        updateAllNum();
 
-        if (check) {
-            priceSum = 0;
-            priceSum += price;
-            if (priceSum >= 0)
-                totalPriceTv.setText("￥" + priceSum);
-        } else {
-            priceSum -= price;
-            if (priceSum >= 0)
-                totalPriceTv.setText("￥" + priceSum);
+    }
+
+    @Override
+    public void selectClick() {
+        checkAllCb.setChecked(isSelectAll());
+        updateAllNum();
+    }
+
+    private void updateAllNum() {
+        countSum = 0;
+        priceSum = 0;
+        for (CartDataBean.DataBean.CartListBean item : list) {
+            if (item.isSelect) {
+                priceSum += item.getNumber() * item.getRetail_price();
+                countSum += item.getNumber();
+            }
         }
+        checkAllCb.setText("全选(" + countSum + ")");
+        totalPriceTv.setText("￥" + priceSum);
+    }
+
+    private boolean isSelectAll() {
+
+        boolean bool = true;
+        for (CartDataBean.DataBean.CartListBean item : list) {
+            if (!item.isSelect) {
+                bool = false;
+                break;
+            }
+        }
+
+        return bool;
     }
 }

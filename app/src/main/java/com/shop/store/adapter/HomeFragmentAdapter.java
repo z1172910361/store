@@ -22,6 +22,7 @@ import com.shop.store.model.bean.IndexBean;
 import com.shop.store.view.home.home_detail_activity.BrandDetailActivity;
 import com.shop.store.view.home.home_detail_activity.ChannelListActivity;
 import com.youth.banner.Banner;
+import com.youth.banner.listener.OnBannerListener;
 import com.youth.banner.loader.ImageLoader;
 
 
@@ -105,14 +106,25 @@ public class HomeFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                     Glide.with(context).load(image_url).into(imageView);
                 }
             }).setDelayTime(3000).start();
+            bh.banner.setOnBannerListener(new OnBannerListener() {
+                @Override
+                public void OnBannerClick(int position) {
+
+                }
+            });
         }
 
         if (type == 2) {
             final IndexHolder ih = (IndexHolder) holder;
 
             for (int i = 0; i < channel.size(); i++) {
-                ih.tab.addTab(ih.tab.newTab().setText(channel.get(i).getName()));
+                View view = View.inflate(context, R.layout.item_tab, null);
+                ImageView item_tab_iv = view.findViewById(R.id.item_tab_iv);
+                TextView item_tab_tv = view.findViewById(R.id.item_tab_tv);
+                item_tab_tv.setText(channel.get(i).getName());
+                ih.tab.addTab(ih.tab.newTab().setCustomView(view));
             }
+
 
             ih.tab.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
                 @Override
